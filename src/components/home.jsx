@@ -27,7 +27,7 @@ const Home = () => {
             </div>
             <div className="feature-card">
               <div className="feature-icon">📅</div>
-              <h3 className="feature-title">Flex Timings</h3>
+              <h3 className="feature-title">Flexible Timings</h3>
               <p className="feature-description">
                 Choose from a wide range of available timings that suit your schedule.
               </p>
