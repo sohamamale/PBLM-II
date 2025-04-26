@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useNavigate } from "react-router-dom"
-import { Link } from "react-router-dom"
-import BookingForm from './BookingForm';
 
 function Timings() {
   const { groundType } = useParams();
@@ -18,15 +15,6 @@ function Timings() {
       .map(booking => parseInt(booking.timeSlot));
     setBookedSlots(slotsForDate);
   }, [selectedDate, groundType]);
-
-  const handleBookingSuccess = () => {
-    // Refresh the booked slots after a successful booking
-    const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-    const slotsForDate = bookings
-      .filter(booking => booking.date === selectedDate && booking.groundType === groundType)
-      .map(booking => parseInt(booking.timeSlot));
-    setBookedSlots(slotsForDate);
-  };
 
   const getGroundTitle = () => {
     switch(groundType) {
@@ -55,7 +43,7 @@ function Timings() {
         />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '30px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
         {timeSlots.map((hour) => (
           <div
             key={hour}
@@ -72,8 +60,6 @@ function Timings() {
           </div>
         ))}
       </div>
-
-      <BookingForm onBookingSuccess={handleBookingSuccess} />
     </div>
   );
 }

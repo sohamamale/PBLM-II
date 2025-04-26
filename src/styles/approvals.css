@@ -1,0 +1,47 @@
+.approvals-table {
+  background-color: var(--white);
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.approvals-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.approvals-table th {
+  background-color: var(--background-color);
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.approvals-table td, .approvals-table th {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.approvals-table tr:last-child td {
+  border-bottom: none;
+}
+
+.approvals-table tr:hover {
+  background-color: var(--background-color);
+}
+
+.text-green-600 {
+  color: var(--success-color);
+}
+
+.text-red-600 {
+  color: var(--error-color);
+}
+
+.text-yellow-600 {
+  color: #d97706;
+}
+
+.text-gray-600 {
+  color: var(--light-text);
+} 

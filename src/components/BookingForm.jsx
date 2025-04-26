@@ -1,61 +1,93 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 import './BookingForm.css';
 
 function BookingForm({ onBookingSuccess }) {
   const { groundType } = useParams();
+  const navigate = useNavigate();
+  const { isDarkMode } = useTheme();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     date: '',
     timeSlot: '',
     purpose: '',
-    groundType: groundType || 'lawn' // Default to lawn if no type specified
+    groundType: groundType || 'lawn'
   });
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const timeSlots = Array.from({ length: 11 }, (_, i) => i + 8); // 8 to 18
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // Get existing bookings from localStorage
-    const existingBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-    
-    // Check if slot is already booked
-    const isSlotBooked = existingBookings.some(
-      booking => booking.date === formData.date && 
-                booking.timeSlot === formData.timeSlot &&
-                booking.groundType === formData.groundType
-    );
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = 'Name is required';
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+    if (!formData.date) newErrors.date = 'Date is required';
+    if (!formData.timeSlot) newErrors.timeSlot = 'Time slot is required';
+    if (!formData.purpose.trim()) newErrors.purpose = 'Purpose is required';
+    return newErrors;
+  };
 
-    if (isSlotBooked) {
-      alert('This slot is already booked. Please choose another time.');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formErrors = validateForm();
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
       return;
     }
 
-    // Add new booking
-    const newBooking = {
-      ...formData,
-      id: Date.now(),
-      bookingDate: new Date().toISOString()
-    };
+    setIsSubmitting(true);
+    try {
+      // Get existing bookings from localStorage
+      const existingBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+      
+      // Check if slot is already booked
+      const isSlotBooked = existingBookings.some(
+        booking => booking.date === formData.date && 
+                  booking.timeSlot === formData.timeSlot &&
+                  booking.groundType === formData.groundType
+      );
 
-    const updatedBookings = [...existingBookings, newBooking];
-    localStorage.setItem('bookings', JSON.stringify(updatedBookings));
+      if (isSlotBooked) {
+        setErrors({ timeSlot: 'This slot is already booked. Please choose another time.' });
+        return;
+      }
 
-    // Reset form
-    setFormData({
-      name: '',
-      email: '',
-      date: '',
-      timeSlot: '',
-      purpose: '',
-      groundType: groundType || 'lawn'
-    });
+      // Add new booking
+      const newBooking = {
+        ...formData,
+        id: Date.now(),
+        bookingDate: new Date().toISOString(),
+        status: 'Pending'
+      };
 
-    alert('Booking successful!');
-    if (onBookingSuccess) {
-      onBookingSuccess();
+      const updatedBookings = [...existingBookings, newBooking];
+      localStorage.setItem('bookings', JSON.stringify(updatedBookings));
+
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        date: '',
+        timeSlot: '',
+        purpose: '',
+        groundType: groundType || 'lawn'
+      });
+      setErrors({});
+
+      alert('Booking successful! Your request is pending approval.');
+      navigate('/approvals');
+    } catch (error) {
+      console.error('Booking error:', error);
+      alert('An error occurred while processing your booking. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -65,6 +97,13 @@ function BookingForm({ onBookingSuccess }) {
       ...prev,
       [name]: value
     }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   const getGroundTitle = () => {
@@ -81,7 +120,7 @@ function BookingForm({ onBookingSuccess }) {
   };
 
   return (
-    <div className="booking-form">
+    <div className={`booking-form ${isDarkMode ? 'dark' : ''}`}>
       <h2>Book {getGroundTitle()}</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
@@ -91,8 +130,10 @@ function BookingForm({ onBookingSuccess }) {
             name="name"
             value={formData.name}
             onChange={handleChange}
-            required
+            className={errors.name ? 'error' : ''}
+            placeholder="Enter your full name"
           />
+          {errors.name && <span className="error-message">{errors.name}</span>}
         </div>
         
         <div className="form-group">
@@ -102,8 +143,10 @@ function BookingForm({ onBookingSuccess }) {
             name="email"
             value={formData.email}
             onChange={handleChange}
-            required
+            className={errors.email ? 'error' : ''}
+            placeholder="Enter your email"
           />
+          {errors.email && <span className="error-message">{errors.email}</span>}
         </div>
         
         <div className="form-group">
@@ -113,9 +156,10 @@ function BookingForm({ onBookingSuccess }) {
             name="date"
             value={formData.date}
             onChange={handleChange}
-            required
+            className={errors.date ? 'error' : ''}
             min={new Date().toISOString().split('T')[0]}
           />
+          {errors.date && <span className="error-message">{errors.date}</span>}
         </div>
         
         <div className="form-group">
@@ -124,7 +168,7 @@ function BookingForm({ onBookingSuccess }) {
             name="timeSlot"
             value={formData.timeSlot}
             onChange={handleChange}
-            required
+            className={errors.timeSlot ? 'error' : ''}
           >
             <option value="">Select a time slot</option>
             {timeSlots.map(hour => (
@@ -133,6 +177,7 @@ function BookingForm({ onBookingSuccess }) {
               </option>
             ))}
           </select>
+          {errors.timeSlot && <span className="error-message">{errors.timeSlot}</span>}
         </div>
         
         <div className="form-group">
@@ -141,11 +186,20 @@ function BookingForm({ onBookingSuccess }) {
             name="purpose"
             value={formData.purpose}
             onChange={handleChange}
-            required
+            className={errors.purpose ? 'error' : ''}
+            placeholder="Describe the purpose of your booking"
+            rows="4"
           />
+          {errors.purpose && <span className="error-message">{errors.purpose}</span>}
         </div>
         
-        <button type="submit">Book Slot</button>
+        <button 
+          type="submit" 
+          className={isSubmitting ? 'submitting' : ''}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Processing...' : 'Book Slot'}
+        </button>
       </form>
     </div>
   );

@@ -1,6 +1,7 @@
 .centerHeader {
   text-align: center;
 }
+
 #loginDiv {
   border: 1px solid black;
   margin: 20px;
@@ -12,20 +13,32 @@
   display: flex;
   justify-content: space-evenly;
 } 
+
 .flexImgs {
   width: 350px;
   height: 350px;
   transition: 300ms;
   border-radius: 50px;
 }
+
 .flexImgs:hover {
   transform: scale(1.05);
   opacity: 0.8;
   transition: 300ms;
   cursor: pointer;
 }
+
 .flexCol {
   display: flex;
   flex-direction: column;
   text-align: center;
+}
+
+/* Dark mode specific gradients */
+[data-theme="dark"] .centerHeader,
+[data-theme="dark"] #loginDiv,
+[data-theme="dark"] .imgDiv,
+[data-theme="dark"] .flexImgs,
+[data-theme="dark"] .flexCol {
+  background: linear-gradient(120deg, rgba(0,0,0,0.2), rgba(0,0,0,0.1));
 }
