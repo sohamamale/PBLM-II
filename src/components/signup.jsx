@@ -1,15 +1,18 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    role: 'student'
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { signup } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,14 +22,23 @@ const Signup = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-    // Add your signup logic here
-    navigate('/login');
+
+    const { confirmPassword, ...signupData } = formData;
+    const result = await signup(signupData);
+
+    if (result.success) {
+      navigate('/');
+    } else {
+      setError(result.error);
+    }
   };
 
   return (
@@ -82,6 +94,41 @@ const Signup = () => {
               onChange={handleChange}
               required
             />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Role</label>
+            <div className="role-options">
+              <label className="role-option">
+                <input
+                  type="radio"
+                  name="role"
+                  value="student"
+                  checked={formData.role === 'student'}
+                  onChange={handleChange}
+                />
+                Student
+              </label>
+              <label className="role-option">
+                <input
+                  type="radio"
+                  name="role"
+                  value="CR"
+                  checked={formData.role === 'CR'}
+                  onChange={handleChange}
+                />
+                CR
+              </label>
+              <label className="role-option">
+                <input
+                  type="radio"
+                  name="role"
+                  value="admin"
+                  checked={formData.role === 'admin'}
+                  onChange={handleChange}
+                />
+                Admin
+              </label>
+            </div>
           </div>
           <button type="submit" className="form-submit">Sign Up</button>
         </form>

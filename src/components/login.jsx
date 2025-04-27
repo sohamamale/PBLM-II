@@ -1,19 +1,24 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add your login logic here
-    if (email && password) {
-      navigate('/home');
+    setError('');
+
+    const result = await login(email, password);
+
+    if (result.success) {
+      navigate('/');
     } else {
-      setError('Please fill in all fields');
+      setError(result.error);
     }
   };
 
